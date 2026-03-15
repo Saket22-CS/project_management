@@ -137,7 +137,7 @@ const sendTaskAssignmentEmail = inngest.createFunction(
         await sendEmail({
             to: task.assignee.email,
             subject: `New Task Assignment in ${task.project.name}`,
-            body: `<div style='max-width: 600px;>
+            body: `<div style="max-width: 600px;">
                    <h2> Hi ${task.assignee.name}, 👋</h2>
 
                    <p style="font-size: 16px;"> You've been assigned a new task: </p>
