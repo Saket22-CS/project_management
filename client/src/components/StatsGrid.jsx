@@ -2,6 +2,14 @@ import { FolderOpen, CheckCircle, Users, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
+// Safely parse "2026-03-19 00:00:00" (space-separated) into a valid Date
+const parseDate = (str) => {
+    if (!str) return null;
+    const iso = String(str).replace(" ", "T");
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? null : d;
+};
+
 export default function StatsGrid() {
     const currentWorkspace = useSelector(
         (state) => state?.workspace?.currentWorkspace || null
@@ -9,11 +17,44 @@ export default function StatsGrid() {
 
     const [stats, setStats] = useState({
         totalProjects: 0,
-        activeProjects: 0,
         completedProjects: 0,
         myTasks: 0,
         overdueIssues: 0,
     });
+
+    useEffect(() => {
+        if (currentWorkspace) {
+            const now = new Date();
+
+            const totalProjects = currentWorkspace.projects.length;
+
+            const completedProjects = currentWorkspace.projects
+                .filter((p) => p.status === "COMPLETED")
+                .reduce((acc, project) => acc + project.tasks.length, 0);
+
+            const myTasks = currentWorkspace.projects.reduce(
+                (acc, project) =>
+                    acc +
+                    project.tasks.filter(
+                        (t) => t.assignee?.email === currentWorkspace.owner.email
+                    ).length,
+                0
+            );
+
+            const overdueIssues = currentWorkspace.projects.reduce(
+                (acc, project) =>
+                    acc +
+                    project.tasks.filter((t) => {
+                        if (t.status === "DONE") return false;
+                        const due = parseDate(t.due_date);
+                        return due !== null && due < now;
+                    }).length,
+                0
+            );
+
+            setStats({ totalProjects, completedProjects, myTasks, overdueIssues });
+        }
+    }, [currentWorkspace]);
 
     const statCards = [
         {
@@ -50,38 +91,11 @@ export default function StatsGrid() {
         },
     ];
 
-    useEffect(() => {
-        if (currentWorkspace) {
-            setStats({
-                totalProjects: currentWorkspace.projects.length,
-                activeProjects: currentWorkspace.projects.filter(
-                    (p) => p.status !== "CANCELLED" && p.status !== "COMPLETED"
-                ).length,
-                completedProjects: currentWorkspace.projects
-                    .filter((p) => p.status === "COMPLETED")
-                    .reduce((acc, project) => acc + project.tasks.length, 0),
-                myTasks: currentWorkspace.projects.reduce(
-                    (acc, project) =>
-                        acc +
-                        project.tasks.filter(
-                            (t) => t.assignee?.email === currentWorkspace.owner.email
-                        ).length,
-                    0
-                ),
-                overdueIssues: currentWorkspace.projects.reduce(
-                    (acc, project) =>
-                        acc + project.tasks.filter((t) => t.due_date < new Date()).length,
-                    0
-                ),
-            });
-        }
-    }, [currentWorkspace]);
-
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-9">
             {statCards.map(
                 ({ icon: Icon, title, value, subtitle, bgColor, textColor }, i) => (
-                    <div key={i} className="bg-white dark:bg-zinc-950 dark:bg-gradient-to-br dark:from-zinc-800/70 dark:to-zinc-900/50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-200 rounded-md" >
+                    <div key={i} className="bg-white dark:bg-zinc-950 dark:bg-gradient-to-br dark:from-zinc-800/70 dark:to-zinc-900/50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-200 rounded-md">
                         <div className="p-6 py-4">
                             <div className="flex items-start justify-between">
                                 <div>
