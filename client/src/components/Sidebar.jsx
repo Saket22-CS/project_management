@@ -14,7 +14,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
         { name: 'Projects', href: '/projects', icon: FolderOpenIcon },
         { name: 'Team', href: '/team', icon: UsersIcon },
-        { name: 'AI Tools', href: 'https://quick-ai-6ltt.vercel.app/ai', icon: Sparkles }
+        { name: 'AI Tools', href: '/ai-tools', icon: Sparkles }
     ]
 
     const sidebarRef = useRef(null);
