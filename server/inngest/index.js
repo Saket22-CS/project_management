@@ -159,18 +159,20 @@ const sendTaskAssignmentEmail = inngest.createFunction(
             return task;
         });
 
-        // Step 2: only schedule reminder if due date is in the future
+        // No due date = nothing to remind
         if (!task.due_date) return;
 
-        const dueDate = new Date(task.due_date);
-        const now = new Date();
+        // Parse due date — "2026-03-20 00:00:00" space format → valid Date
+        const dueDate = new Date(String(task.due_date).replace(" ", "T"));
 
-        if (dueDate <= now) return; // due date already passed, skip reminder
+        // If due date is invalid, skip
+        if (isNaN(dueDate.getTime())) return;
 
-        // Step 3: sleep until due date
+        // Step 2: sleep until due date
+        // If dueDate is already in the past, Inngest will wake up immediately — that's fine
         await step.sleepUntil('wait-for-due-date', dueDate);
 
-        // Step 4: re-fetch task and check if still incomplete
+        // Step 3: re-fetch task after waking up
         const updatedTask = await step.run('check-if-task-is-completed', async () => {
             return await prisma.task.findUnique({
                 where: { id: taskId },
@@ -178,10 +180,10 @@ const sendTaskAssignmentEmail = inngest.createFunction(
             });
         });
 
+        // Step 4: only send reminder if task is NOT done
         if (!updatedTask || updatedTask.status === "DONE") return;
 
-        // Step 5: send overdue reminder (flat step, NOT nested)
-        await step.run('send-overdue-reminder-email', async () => {
+        await step.run(`send-overdue-reminder-email-${taskId}`, async () => {
             await sendEmail({
                 to: updatedTask.assignee.email,
                 subject: `Task Overdue Reminder — ${updatedTask.project.name}`,
