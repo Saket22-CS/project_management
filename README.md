@@ -113,6 +113,17 @@ Sign up with Google or email to explore the full application. Create a workspace
 - **Project Analytics** with visual charts (Recharts)
 - **Calendar view** for date-based task management
 
+### 🔔 In-App Notification System
+- **Bell icon** in the navbar with a live **unread badge counter**
+- Personalized notifications using the logged-in user's name via Clerk
+- Notification types supported: `task assignment`, `workspace invitation`, `mention`, `deadline`
+- Click any notification to **mark it as read** — unread items highlighted in blue
+- **"Mark all read"** button to clear the badge in one click
+- Dismiss individual notifications with the ✕ button
+- Empty state with "No notifications yet" when the list is clear
+- Dropdown closes automatically on outside click
+- Timestamps displayed as relative time — `2m ago`, `1h ago`, `3h ago`
+
 ### 🎨 UI & Theming
 - **Light / Dark mode** toggle
 - Fully responsive design for desktop and mobile
@@ -249,7 +260,7 @@ Before you begin, make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Saket22-CS/project_management
+git clone https://github.com/Saket22-CS/project-management-app.git
 cd project-management-app
 ```
 
